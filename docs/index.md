@@ -7,8 +7,8 @@ Welcome! This is my static site built with MkDocs.
 ##
  Задание 2.1. Создание и развертывание статического сайта
 
-- [Source code on GitHub](https://github.com/CheikhEbeoumar/your-repo-name)
-- [Deployed site link](https://cheikhebeoumar.github.io/your-repo-name/)
+- [Source code on GitHub](https://github.com/CheikhEbeoumar/my-mkdocs-site)
+- [Deployed site link](https://cheikhebeoumar.github.io/my-mkdocs-site/)
 
 ## Features
 

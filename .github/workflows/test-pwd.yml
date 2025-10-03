@@ -1,0 +1,39 @@
+name: Test PWD Deployment
+
+on:
+  workflow_dispatch:  # This allows manual triggering
+    inputs:
+      pwd_host:
+        description: 'PWD Instance Hostname'
+        required: true
+        default: 'ip172-18-0-13-d3ftgqgl2o9000aqv5s0'
+      pwd_password:
+        description: 'PWD SSH Password'
+        required: true
+        default: '12345'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies and build site
+        run: |
+          pip install mkdocs
+          mkdocs build
+          ls -la site/  # Debug: check if site was built
+          
+      - name: Deploy to Play-with-Docker
+        uses: ./.github/actions/deploy-pwd
+        with:
+          pwd_host: ${{ inputs.pwd_host }}
+          pwd_username: 'root'
+          pwd_password: ${{ inputs.pwd_password }}
+          site_directory: 'site'

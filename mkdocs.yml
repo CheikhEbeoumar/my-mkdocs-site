@@ -1,6 +1,20 @@
 site_name: My Static Site
+site_description: A custom static site built with MkDocs.
+site_author: Cheikh
+
 theme:
-  name: material
+  name: null
+  custom_dir: theme
+
+docs_dir: docs
+site_dir: site
+
 nav:
   - Home: index.md
   - About: about.md
+
+markdown_extensions:
+  - toc:
+      permalink: true
+  - markdown.extensions.codehilite
+  - markdown.extensions.extra

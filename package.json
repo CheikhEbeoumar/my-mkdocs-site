@@ -1,0 +1,16 @@
+{
+  "name": "my-static-site",
+  "version": "1.0.0",
+  "scripts": {
+    "build:css": "postcss theme/styles.css -o theme/styles.processed.css",
+    "minify:css": "postcss theme/styles.processed.css -o theme/styles.processed.css --use cssnano"
+  },
+  "devDependencies": {
+    "cssnano": "^7.1.1",
+    "html-minifier": "^4.0.0",
+    "html-validate": "^7.0.0",
+    "postcss": "^8.5.6",
+    "postcss-cli": "^10.1.0",
+    "postcss-preset-env": "^7.8.3"
+  }
+}

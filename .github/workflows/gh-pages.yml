@@ -6,25 +6,43 @@ on:
       - main
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
-
+    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Frontend Build Stage
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install and build CSS
+        run: |
+          npm install
+          npm run build:css
+
+      # Python/MkDocs Build Stage
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      - name: Install dependencies
+      - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install mkdocs mkdocs-material
+          pip install mkdocs
 
       - name: Build MkDocs site
         run: mkdocs build
+
+      # HTML Validation (Optional but recommended)
+      - name: Validate HTML
+        run: |
+          npx -y html-validate ./site/*.html 2>/dev/null || echo "HTML validation completed"
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4

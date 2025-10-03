@@ -1,55 +1,79 @@
 name: 'Deploy to Play-with-Docker'
-description: 'Deploy static site to Play-with-Docker'
+description: 'Deploy static site to Play-with-Docker instance via SCP'
 
 inputs:
   pwd_host:
+    description: 'Play-with-Docker instance IP address'
     required: true
   pwd_username:
+    description: 'SSH username'
     required: true
     default: 'root'
   pwd_password:
+    description: 'SSH password'
     required: true
   site_directory:
+    description: 'Directory containing built static site'
     required: true
     default: 'site'
+  ssh_port:
+    description: 'SSH port'
+    required: false
+    default: '22'
 
 runs:
   using: "composite"
   steps:
-    - name: Install SSH client
+    - name: Install SSH dependencies
       shell: bash
       run: |
         sudo apt-get update
         sudo apt-get install -y sshpass
 
-    - name: Test connection to PWD
+    - name: Verify site directory exists
       shell: bash
-      env:
-        PWD_HOST: ${{ inputs.pwd_host }}
-        PWD_PASSWORD: ${{ inputs.pwd_password }}
       run: |
-        echo "Testing connection to PWD..."
-        sshpass -p "$PWD_PASSWORD" ssh -o StrictHostKeyChecking=no root@$PWD_HOST "echo 'Connection successful!'"
+        echo "Checking site directory: ${{ inputs.site_directory }}"
+        ls -la ${{ inputs.site_directory }}/
 
-    - name: Deploy files
+    - name: Create directory on PWD instance
       shell: bash
       env:
-        PWD_HOST: ${{ inputs.pwd_host }}
         PWD_PASSWORD: ${{ inputs.pwd_password }}
       run: |
-        echo "Deploying files to PWD..."
-        sshpass -p "$PWD_PASSWORD" ssh -o StrictHostKeyChecking=no root@$PWD_HOST "mkdir -p /root/static-site"
-        sshpass -p "$PWD_PASSWORD" scp -o StrictHostKeyChecking=no -r ${{ inputs.site_directory }}/* root@$PWD_HOST:/root/static-site/
-        echo "Files deployed successfully!"
+        sshpass -p "$PWD_PASSWORD" ssh -o StrictHostKeyChecking=no -p ${{ inputs.ssh_port }} \
+          ${{ inputs.pwd_username }}@${{ inputs.pwd_host }} \
+          "mkdir -p /root/static-site && echo 'Directory created'"
 
-    - name: Start web server
+    - name: Copy static files to PWD
       shell: bash
       env:
-        PWD_HOST: ${{ inputs.pwd_host }}
         PWD_PASSWORD: ${{ inputs.pwd_password }}
       run: |
-        echo "Starting web server on PWD..."
-        sshpass -p "$PWD_PASSWORD" ssh -o StrictHostKeyChecking=no root@$PWD_HOST "
-          docker run -d --name my-static-site -p 8080:80 -v /root/static-site:/usr/share/nginx/html nginx:alpine
-          echo 'Web server started on port 8080'
-        "
+        sshpass -p "$PWD_PASSWORD" scp -o StrictHostKeyChecking=no -P ${{ inputs.ssh_port }} -r \
+          ${{ inputs.site_directory }}/* \
+          ${{ inputs.pwd_username }}@${{ inputs.pwd_host }}:/root/static-site/
+
+    - name: Start web server on PWD
+      shell: bash
+      env:
+        PWD_PASSWORD: ${{ inputs.pwd_password }}
+      run: |
+        sshpass -p "$PWD_PASSWORD" ssh -o StrictHostKeyChecking=no -p ${{ inputs.ssh_port }} \
+          ${{ inputs.pwd_username }}@${{ inputs.pwd_host }} << 'EOF'
+          # Stop existing container if any
+          docker stop static-site 2>/dev/null || true
+          docker rm static-site 2>/dev/null || true
+          
+          # Start new container
+          docker run -d \
+            --name static-site \
+            -p 8080:80 \
+            -v /root/static-site:/usr/share/nginx/html \
+            nginx:alpine
+          
+          # Verify deployment
+          sleep 3
+          docker ps
+          echo "Deployment completed! Site is running on port 8080"
+        EOF

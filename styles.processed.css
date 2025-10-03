@@ -1,0 +1,82 @@
+/* Modern CSS with nesting and variables */
+:root {
+  --primary-color: #005f73;
+  --secondary-color: #0a9396;
+  --text-color: #333;
+  --spacing: 1rem;
+}
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  margin: 0; 
+  padding: 0;
+  min-height: 100vh;
+  position: relative;
+  padding-bottom: 60px;
+  color: #333;
+  color: var(--text-color);
+  
+  /* Modern CSS feature that PostCSS will process */
+}
+
+body header {
+    background-color: #005f73;
+    background-color: var(--primary-color);
+    padding: 1rem;
+    padding: var(--spacing);
+    color: white;
+  }
+
+body header a {
+      color: white;
+      text-decoration: none;
+      transition: opacity 0.3s ease;
+    }
+
+body header a:hover {
+        opacity: 0.8;
+      }
+
+nav ul {
+    list-style: none;
+    display: flex;
+    gap: 1rem;
+    gap: var(--spacing);
+    padding: 0; 
+    margin: 1rem 0 0 0;
+  }
+
+nav a {
+    color: white;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+  }
+
+nav a:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+main {
+  padding: 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+main h1, main h2, main h3 {
+    color: #005f73;
+    color: var(--primary-color);
+  }
+
+footer {
+  background-color: #0a9396;
+  background-color: var(--secondary-color);
+  color: white;
+  text-align: center;
+  padding: 1rem;
+  padding: var(--spacing);
+  position: absolute;
+  width: 100%;
+  bottom: 0;
+}

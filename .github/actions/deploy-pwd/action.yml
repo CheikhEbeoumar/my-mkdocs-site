@@ -1,0 +1,56 @@
+name: 'Deploy to Play-with-Docker'
+description: 'Deploy static site to Play-with-Docker instance'
+
+inputs:
+  pwd_host:
+    description: 'Play-with-Docker instance hostname'
+    required: true
+  pwd_username:
+    description: 'SSH username'
+    required: true
+    default: 'root'
+  pwd_password:
+    description: 'SSH password'
+    required: true
+  site_directory:
+    description: 'Directory containing built static site'
+    required: true
+    default: 'site'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install SSHpass
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y sshpass
+
+    - name: Create directory on PWD
+      shell: bash
+      env:
+        PWD_HOST: ${{ inputs.pwd_host }}
+        PWD_USERNAME: ${{ inputs.pwd_username }}
+        PWD_PASSWORD: ${{ inputs.pwd_password }}
+      run: |
+        sshpass -p "$PWD_PASSWORD" ssh -o StrictHostKeyChecking=no $PWD_USERNAME@$PWD_HOST "mkdir -p /root/static-site"
+
+    - name: Copy site files
+      shell: bash
+      env:
+        PWD_HOST: ${{ inputs.pwd_host }}
+        PWD_USERNAME: ${{ inputs.pwd_username }}
+        PWD_PASSWORD: ${{ inputs.pwd_password }}
+      run: |
+        sshpass -p "$PWD_PASSWORD" scp -o StrictHostKeyChecking=no -r ${{ inputs.site_directory }}/* $PWD_USERNAME@$PWD_HOST:/root/static-site/
+
+    - name: Start nginx container
+      shell: bash
+      env:
+        PWD_HOST: ${{ inputs.pwd_host }}
+        PWD_USERNAME: ${{ inputs.pwd_username }}
+        PWD_PASSWORD: ${{ inputs.pwd_password }}
+      run: |
+        sshpass -p "$PWD_PASSWORD" ssh -o StrictHostKeyChecking=no $PWD_USERNAME@$PWD_HOST "
+          docker run -d --name static-site -p 8080:80 -v /root/static-site:/usr/share/nginx/html nginx:alpine
+        "
